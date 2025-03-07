@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,28 +9,19 @@ import { ArrowLeft, MessageCircle } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import DashboardHeader from "@/components/dashboard-header"
 import DashboardSidebar from "@/components/dashboard-sidebar"
+import { fetchApi } from "@/lib/api"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
 // Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
   switch (status) {
-    case "pending":
-      return (
-        <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-          Menunggu
-        </Badge>
-      )
-    case "in-progress":
-      return (
-        <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-          Diproses
-        </Badge>
-      )
-    case "completed":
-      return (
-        <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
-          Selesai
-        </Badge>
-      )
+    case "PENDING":
+      return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Menunggu</Badge>
+    case "IN_PROGRESS":
+      return <Badge variant="outline" className="bg-blue-100 text-blue-800">Diproses</Badge>
+    case "COMPLETED":
+      return <Badge variant="outline" className="bg-green-100 text-green-800">Selesai</Badge>
     default:
       return <Badge variant="outline">{status}</Badge>
   }
@@ -38,82 +29,76 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export default function ReportDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  const [report, setReport] = useState<any>(null)
   const [comment, setComment] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  // Mock report data
-  const report = {
-    id: Number.parseInt(params.id),
-    title: "Kerusakan Lampu Kamar",
-    description:
-      "Lampu kamar mati dan perlu diganti. Sudah dicoba untuk mengganti bohlam namun tetap tidak menyala. Sepertinya ada masalah pada fitting atau kabel listriknya.",
-    status: "in-progress",
-    category: "electrical",
-    createdAt: "2023-05-15T10:30:00",
-    updatedAt: "2023-05-16T14:20:00",
-    images: ["/placeholder.svg?height=300&width=400", "/placeholder.svg?height=300&width=400"],
-    comments: [
-      {
-        id: 1,
-        user: "PART Staff",
-        message: "Laporan Anda telah diterima. Kami akan mengirimkan teknisi untuk memeriksa kerusakan.",
-        createdAt: "2023-05-15T11:45:00",
-        isStaff: true,
-      },
-      {
-        id: 2,
-        user: "Budi Santoso",
-        message: "Terima kasih, mohon segera ditindaklanjuti.",
-        createdAt: "2023-05-15T13:20:00",
-        isStaff: false,
-      },
-      {
-        id: 3,
-        user: "PART Staff",
-        message: "Teknisi akan datang besok pukul 10.00 WIB. Mohon ketersediaannya.",
-        createdAt: "2023-05-15T15:10:00",
-        isStaff: true,
-      },
-    ],
-  }
-
-  // Mock user data
-  const user = {
-    name: "Budi Santoso",
-    email: "budi@example.com",
-    room: "A-101",
-  }
-
-  const handleCommentSubmit = () => {
-    if (!comment.trim()) return
-
-    setIsLoading(true)
-
-    // Simulate sending comment - in a real app, this would call an API
-    setTimeout(() => {
-      setComment("")
-      setIsLoading(false)
-      // In a real app, we would update the comments list here
-    }, 1000)
-  }
-
-  // Format category name
-  const getCategoryName = (category: string) => {
-    const categories: Record<string, string> = {
-      electrical: "Listrik",
-      plumbing: "Pipa/Air",
-      furniture: "Furnitur",
-      door: "Pintu/Jendela",
-      wall: "Dinding/Lantai",
-      other: "Lainnya",
+  // Fetch report data from API
+  useEffect(() => {
+    const fetchReport = async () => {
+      try {
+        setIsLoading(true)
+        const data = await fetchApi(`/api/reports/${params.id}`)
+        setReport(data)
+        setError("")
+      } catch (err) {
+        console.error("Error fetching report:", err)
+        setError("Gagal memuat data laporan")
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    return categories[category] || category
+    fetchReport()
+  }, [params.id])
+
+  const handleCommentSubmit = async () => {
+    if (!comment.trim()) return
+
+    try {
+      setIsLoading(true)
+      const response = await fetchApi(`/api/reports/${params.id}/comments`, {
+        method: "POST",
+        body: { message: comment },
+      })
+
+      if (response.id) {
+        setComment("")
+        // Refresh report data to show new comment
+        const updatedReport = await fetchApi(`/api/reports/${params.id}`)
+        setReport(updatedReport)
+      }
+    } catch (err) {
+      console.error("Error submitting comment:", err)
+      setError("Gagal mengirim komentar")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Memuat...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
+  if (!report) {
+    return <div className="flex items-center justify-center min-h-screen">Laporan tidak ditemukan</div>
   }
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <DashboardHeader user={user} />
+      <DashboardHeader user={{ name: "User", email: "user@example.com" }} />
 
       <div className="flex">
         <DashboardSidebar activeItem="report" />
@@ -125,7 +110,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
             </Button>
             <div>
               <h1 className="text-3xl font-bold">Detail Laporan</h1>
-              <p className="text-muted-foreground">Laporan #{params.id}</p>
+              <p className="text-muted-foreground">Laporan #{report.id}</p>
             </div>
           </div>
 
@@ -137,14 +122,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                     <div>
                       <CardTitle>{report.title}</CardTitle>
                       <CardDescription>
-                        Dibuat pada{" "}
-                        {new Date(report.createdAt).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        Dibuat pada {new Date(report.createdAt).toLocaleDateString("id-ID")}
                       </CardDescription>
                     </div>
                     <StatusBadge status={report.status} />
@@ -158,24 +136,24 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
 
                   <div>
                     <h3 className="font-medium mb-2">Kategori</h3>
-                    <p className="text-sm">{getCategoryName(report.category)}</p>
+                    <p className="text-sm">{report.category}</p>
                   </div>
 
                   {report.images.length > 0 && (
-                    <div>
-                      <h3 className="font-medium mb-2">Foto Kerusakan</h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        {report.images.map((image, index) => (
-                          <img
-                            key={index}
-                            src={image || "/placeholder.svg"}
-                            alt={`Foto kerusakan ${index + 1}`}
-                            className="rounded-md w-full h-auto"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
+  <div>
+    <h3 className="font-medium mb-2">Foto Kerusakan</h3>
+    <div className="grid grid-cols-2 gap-2">
+      {report.images.map((image: any, index: number) => (
+        <img
+          key={index}
+          src={image.url} // URL gambar dari database
+          alt={`Foto kerusakan ${index + 1}`}
+          className="rounded-md w-full h-auto"
+        />
+      ))}
+    </div>
+  </div>
+)}
                 </CardContent>
               </Card>
 
@@ -185,15 +163,15 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                   <CardDescription>Komunikasi dengan tim PART mengenai laporan ini</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {report.comments.map((comment) => (
-                    <div key={comment.id} className={`flex gap-4 ${comment.isStaff ? "justify-start" : "justify-end"}`}>
+                  {report.comments.map((comment: any) => (
+                    <div key={comment.id} className={`flex gap-4 ${comment.user.role !== "USER" ? "justify-start" : "justify-end"}`}>
                       <div
                         className={`max-w-[80%] rounded-lg p-3 ${
-                          comment.isStaff ? "bg-muted" : "bg-primary text-primary-foreground"
+                          comment.user.role !== "USER" ? "bg-muted" : "bg-primary text-primary-foreground"
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <p className="font-medium text-sm">{comment.user}</p>
+                          <p className="font-medium text-sm">{comment.user.name}</p>
                           <p className="text-xs opacity-70">
                             {new Date(comment.createdAt).toLocaleTimeString("id-ID", {
                               hour: "2-digit",
@@ -228,6 +206,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
               </Card>
             </div>
 
+            {/* Sidebar dengan info status dan penanganan */}
             <div className="space-y-6">
               <Card>
                 <CardHeader>
@@ -245,75 +224,9 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                     <div>
                       <h3 className="text-sm font-medium">Terakhir Diperbarui</h3>
                       <p className="text-sm mt-1">
-                        {new Date(report.updatedAt).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(report.updatedAt).toLocaleDateString("id-ID")}
                       </p>
                     </div>
-
-                    <div>
-                      <h3 className="text-sm font-medium">Lokasi</h3>
-                      <p className="text-sm mt-1">Kamar {user.room}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Informasi Penanganan</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {report.status === "pending" && (
-                      <p className="text-sm">Laporan Anda sedang menunggu untuk ditinjau oleh tim PART.</p>
-                    )}
-
-                    {report.status === "in-progress" && (
-                      <>
-                        <div>
-                          <h3 className="text-sm font-medium">Petugas</h3>
-                          <p className="text-sm mt-1">Ahmad Teknisi</p>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium">Jadwal Kunjungan</h3>
-                          <p className="text-sm mt-1">16 Mei 2023, 10:00 WIB</p>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium">Estimasi Selesai</h3>
-                          <p className="text-sm mt-1">16 Mei 2023</p>
-                        </div>
-                      </>
-                    )}
-
-                    {report.status === "completed" && (
-                      <>
-                        <div>
-                          <h3 className="text-sm font-medium">Diselesaikan Oleh</h3>
-                          <p className="text-sm mt-1">Ahmad Teknisi</p>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium">Tanggal Selesai</h3>
-                          <p className="text-sm mt-1">
-                            {new Date(report.updatedAt).toLocaleDateString("id-ID", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })}
-                          </p>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium">Catatan Penyelesaian</h3>
-                          <p className="text-sm mt-1">
-                            Lampu kamar telah diganti dengan yang baru. Fitting juga sudah diperbaiki.
-                          </p>
-                        </div>
-                      </>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -324,4 +237,3 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
     </div>
   )
 }
-

@@ -38,20 +38,20 @@ export default function ReportPage() {
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files);
-  
-      // Buat URL preview untuk gambar
-      const newPreviewUrls = filesArray.map((file) => URL.createObjectURL(file));
-  
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, ...filesArray],
-      }));
-  
-      setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
-    }
-  };
+  if (e.target.files) {
+    const filesArray = Array.from(e.target.files);
+
+    // Buat URL preview untuk gambar
+    const newPreviewUrls = filesArray.map((file) => URL.createObjectURL(file));
+
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, ...filesArray],
+    }));
+
+    setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
+  }
+};
 
   const removeImage = (index: number) => {
     // Revoke the object URL to avoid memory leaks

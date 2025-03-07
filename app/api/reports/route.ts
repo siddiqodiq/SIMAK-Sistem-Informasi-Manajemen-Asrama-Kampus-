@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "@/lib/session"
+import { writeFile } from "fs/promises"
+import { join } from "path"
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +10,7 @@ export async function POST(request: Request) {
     if (!session) return new Response("Unauthorized", { status: 401 })
 
     const formData = await request.formData()
-    
+
     // Validasi input
     const requiredFields = ['title', 'description', 'category']
     const missingFields = requiredFields.filter(field => !formData.get(field))
@@ -49,14 +51,18 @@ export async function POST(request: Request) {
     const images = formData.getAll("images") as File[]
     if (images.length > 0) {
       await Promise.all(
-        images.map(async (image) => {
-          // Implementasi upload sebenarnya di sini
-          const fileName = `${Date.now()}-${image.name}`
-          const imageUrl = `/uploads/${fileName}` // Ganti dengan URL storage sebenarnya
-          
+        images.map(async (image, index) => {
+          const buffer = await image.arrayBuffer()
+          const fileName = `${Date.now()}-${image.name}-${report.id}` // Tambahkan ID laporan ke nama file
+          const filePath = join(process.cwd(), "public", "uploads", fileName)
+
+          // Simpan file ke folder uploads
+          await writeFile(filePath, Buffer.from(buffer))
+
+          // Simpan URL gambar ke database
           return prisma.image.create({
             data: {
-              url: imageUrl,
+              url: `/uploads/${fileName}`,
               reportId: report.id,
             },
           })
