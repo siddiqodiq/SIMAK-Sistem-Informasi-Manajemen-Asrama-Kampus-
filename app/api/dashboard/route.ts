@@ -5,26 +5,41 @@ import { getServerSession } from "@/lib/session"
 export async function GET() {
   try {
     const session = await getServerSession()
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    if (!session) return new Response("Unauthorized", { status: 401 })
 
     const user = await prisma.user.findUnique({
       where: { id: session.id },
-      include: { room: true },
+      include: { 
+        room: true,
+        reports: {
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          include: {
+            images: true,
+            comments: {
+              orderBy: { createdAt: "asc" },
+              take: 1
+            }
+          }
+        }
+      },
     })
 
-    const reports = await prisma.report.findMany({
-      where: { userId: session.id },
-      orderBy: { createdAt: "desc" },
-      take: 5, // Limit to 5 most recent reports
+    return NextResponse.json({
+      user: {
+        id: user?.id,
+        name: user?.name,
+        email: user?.email,
+        role: user?.role,
+        room: user?.room
+      },
+      reports: user?.reports || []
     })
-
-    return NextResponse.json({ user, reports })
   } catch (error) {
     console.error("Error fetching dashboard data:", error)
-    return NextResponse.json({ error: "Terjadi kesalahan saat mengambil data dashboard" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Terjadi kesalahan saat mengambil data dashboard" },
+      { status: 500 }
+    )
   }
 }
-
