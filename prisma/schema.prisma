@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  roomId    String?
+  room      Room?    @relation(fields: [roomId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reports   Report[]
+  comments  Comment[]
+}
+
+model Room {
+  id        String   @id @default(uuid())
+  number    String
+  building  String
+  floor     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  reports   Report[]
+}
+
+model Report {
+  id          String    @id @default(uuid())
+  title       String
+  description String    @db.Text
+  category    String
+  status      Status    @default(PENDING)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  roomId      String
+  room        Room      @relation(fields: [roomId], references: [id])
+  assignedTo  String?
+  images      Image[]
+  comments    Comment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+  completionNotes String? @db.Text
+}
+
+model Image {
+  id        String   @id @default(uuid())
+  url       String
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  message   String   @db.Text
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+  STAFF
+}
+
+enum Status {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
