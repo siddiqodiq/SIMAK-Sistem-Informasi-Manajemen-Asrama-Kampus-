@@ -215,9 +215,8 @@ export default function AdminReportDetailPage({ params }: { params: { id: string
                   {report.comments.map((comment) => (
                     <div key={comment.id} className={`flex gap-4 ${comment.isStaff ? "justify-start" : "justify-end"}`}>
                       <div
-                        className={`max-w-[80%] rounded-lg p-3 ${
-                          comment.isStaff ? "bg-primary text-primary-foreground" : "bg-muted"
-                        }`}
+                        className={`max-w-[80%] rounded-lg p-3 ${comment.isStaff ? "bg-primary text-primary-foreground" : "bg-muted"
+                          }`}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <p className="font-medium text-sm">{comment.user}</p>
@@ -255,144 +254,62 @@ export default function AdminReportDetailPage({ params }: { params: { id: string
               </Card>
             </div>
 
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Pengelolaan Laporan</CardTitle>
-                  <CardDescription>Perbarui status dan tetapkan petugas</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status Laporan</Label>
-                    <Select value={status} onValueChange={setStatus}>
-                      <SelectTrigger id="status">
-                        <SelectValue placeholder="Pilih status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Menunggu</SelectItem>
-                        <SelectItem value="in-progress">Diproses</SelectItem>
-                        <SelectItem value="completed">Selesai</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="assignedTo">Tetapkan Petugas</Label>
-                    <Select value={assignedTo} onValueChange={setAssignedTo}>
-                      <SelectTrigger id="assignedTo">
-                        <SelectValue placeholder="Pilih petugas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {staffMembers.map((staff) => (
-                          <SelectItem key={staff.id} value={staff.id.toString()}>
-                            {staff.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {status === "completed" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="completionNotes">Catatan Penyelesaian</Label>
-                      <Textarea
-                        id="completionNotes"
-                        placeholder="Berikan catatan tentang penyelesaian laporan..."
-                        value={completionNotes}
-                        onChange={(e) => setCompletionNotes(e.target.value)}
-                        rows={4}
-                      />
-                    </div>
-                  )}
-
-                  <Button
-                    className="w-full"
-                    onClick={handleStatusUpdate}
-                    disabled={
-                      isLoading ||
-                      (status === "in-progress" && !assignedTo) ||
-                      (status === "completed" && !completionNotes)
-                    }
-                  >
-                    {isLoading ? (
-                      "Memproses..."
-                    ) : status === "pending" ? (
-                      <>
-                        <Clock className="mr-2 h-4 w-4" />
-                        Tandai Sedang Diproses
-                      </>
-                    ) : status === "in-progress" ? (
-                      <>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Tandai Selesai
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Simpan Perubahan
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Riwayat Aktivitas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-2">
-                      <div className="h-2 w-2 rounded-full bg-green-500 mt-2"></div>
-                      <div>
-                        <p className="text-sm font-medium">Laporan Dibuat</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(report.createdAt).toLocaleDateString("id-ID", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <div className="h-2 w-2 rounded-full bg-blue-500 mt-2"></div>
-                      <div>
-                        <p className="text-sm font-medium">Komentar Ditambahkan</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(report.comments[0].createdAt).toLocaleDateString("id-ID", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <div className="h-2 w-2 rounded-full bg-blue-500 mt-2"></div>
-                      <div>
-                        <p className="text-sm font-medium">Komentar Ditambahkan</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(report.comments[1].createdAt).toLocaleDateString("id-ID", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Riwayat Aktivitas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-2">
+                    <div className="h-2 w-2 rounded-full bg-green-500 mt-2"></div>
+                    <div>
+                      <p className="text-sm font-medium">Laporan Dibuat</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(report.createdAt).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+
+                  <div className="flex items-start gap-2">
+                    <div className="h-2 w-2 rounded-full bg-blue-500 mt-2"></div>
+                    <div>
+                      <p className="text-sm font-medium">Komentar Ditambahkan</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(report.comments[0].createdAt).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <div className="h-2 w-2 rounded-full bg-blue-500 mt-2"></div>
+                    <div>
+                      <p className="text-sm font-medium">Komentar Ditambahkan</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(report.comments[1].createdAt).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>

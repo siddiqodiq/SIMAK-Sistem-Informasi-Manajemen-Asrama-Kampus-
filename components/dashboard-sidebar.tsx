@@ -23,12 +23,19 @@ export default function DashboardSidebar({
       icon: Home,
       id: "dashboard",
     },
+    // {
+    //   name: "Laporan",
+    //   href: "/dashboard/report",
+    //   icon: FileText,
+    //   id: "report",
+    // },
     {
-      name: "Laporan",
-      href: "/dashboard/report",
-      icon: FileText,
-      id: "report",
+      name: "Biro Asrama",
+      href: "/dashboard/biro",
+      icon: Home,
+      id: "biro-asrama",
     },
+
     {
       name: "Admin PART",
       href: "/dashboard/admin",
