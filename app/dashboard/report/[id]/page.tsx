@@ -12,6 +12,8 @@ import DashboardSidebar from "@/components/dashboard-sidebar"
 import { fetchApi } from "@/lib/api"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
+import Lightbox from "@/components/lightbox"
+import Image from "next/image"
 
 // Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
@@ -33,6 +35,8 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
   const [comment, setComment] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState("")
 
   // Fetch report data from API
   useEffect(() => {
@@ -75,6 +79,16 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const openLightbox = (imageUrl: string) => {
+    setSelectedImage(imageUrl)
+    setLightboxOpen(true)
+  }
+
+  const closeLightbox = () => {
+    setLightboxOpen(false)
+    setSelectedImage("")
   }
 
   if (isLoading) {
@@ -140,20 +154,27 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                   </div>
 
                   {report.images.length > 0 && (
-  <div>
-    <h3 className="font-medium mb-2">Foto Kerusakan</h3>
-    <div className="grid grid-cols-2 gap-2">
-      {report.images.map((image: any, index: number) => (
-        <img
-          key={index}
-          src={image.url} // URL gambar dari database
-          alt={`Foto kerusakan ${index + 1}`}
-          className="rounded-md w-full h-auto"
-        />
-      ))}
-    </div>
-  </div>
-)}
+                    <div>
+                      <h3 className="font-medium mb-2">Foto Kerusakan</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {report.images.map((image: any, index: number) => (
+                          <div
+                            key={index}
+                            className="cursor-pointer"
+                            onClick={() => openLightbox(image.url)}
+                          >
+                            <Image
+                              src={image.url}
+                              alt={`Foto kerusakan ${index + 1}`}
+                              width={1000}
+                              height={1000}
+                              className="rounded-md w-full h-48 object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -234,6 +255,13 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
           </div>
         </main>
       </div>
+
+      {/* Lightbox untuk memperbesar gambar */}
+      <Lightbox
+        isOpen={lightboxOpen}
+        onClose={closeLightbox}
+        imageUrl={selectedImage}
+      />
     </div>
   )
 }
