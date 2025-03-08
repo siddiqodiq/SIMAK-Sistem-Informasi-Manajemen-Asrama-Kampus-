@@ -70,14 +70,14 @@ export async function POST(request: Request) {
       )
     }
 
-    // Buat komentar awal
+    /*// Buat komentar awal
     await prisma.comment.create({
       data: {
         message: "Laporan Anda telah diterima dan sedang menunggu untuk ditinjau oleh tim PART.",
         reportId: report.id,
         userId: session.id,
       },
-    })
+    })*/
 
     return NextResponse.json(report)
   } catch (error) {
