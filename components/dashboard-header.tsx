@@ -1,3 +1,4 @@
+// components/dashboard-header.tsx
 "use client"
 
 import { useState } from "react"
@@ -19,12 +20,12 @@ import DashboardSidebar from "./dashboard-sidebar"
 import { fetchApi } from "@/lib/api"
 
 interface DashboardHeaderProps {
-  user: {
-    name: string
-    email: string
+  user?: {
+    name?: string
+    email?: string
     role?: string
     room?: {
-      number: string
+      number?: string
     }
   }
 }
@@ -33,8 +34,9 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
 
-  // Get initials from name
-  const getInitials = (name: string) => {
+  // Fungsi untuk mendapatkan inisial dari nama
+  const getInitials = (name?: string) => {
+    if (!name) return "U" // Fallback jika name undefined
     return name
       .split(" ")
       .map((n) => n[0])
@@ -82,17 +84,19 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                  <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                  {user.role && <p className="text-xs leading-none text-muted-foreground">{user.role}</p>}
-                  {user.room && <p className="text-xs leading-none text-muted-foreground">Kamar {user.room.number}</p>}
+                  <p className="text-sm font-medium leading-none">{user?.name || "Pengguna"}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email || "email@example.com"}</p>
+                  {user?.role && <p className="text-xs leading-none text-muted-foreground">{user.role}</p>}
+                  {user?.room?.number && (
+                    <p className="text-xs leading-none text-muted-foreground">Kamar {user.room.number}</p>
+                  )}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -111,4 +115,3 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
     </header>
   )
 }
-

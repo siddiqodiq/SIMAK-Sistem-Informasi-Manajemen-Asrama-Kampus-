@@ -13,6 +13,8 @@ export async function POST(request: Request) {
     const category = formData.get("category") as string
     const reportedRoomNumber = formData.get("reportedRoomNumber") as string
     const reportedBuilding = formData.get("reportedBuilding") as string
+    
+    
 
     // Validasi input
     if (!title || !description || !category || !reportedRoomNumber || !reportedBuilding) {

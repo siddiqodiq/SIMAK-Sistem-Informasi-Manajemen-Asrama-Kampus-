@@ -1,55 +1,39 @@
+// app/dashboard/report/[id]/page.tsx
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, MessageCircle } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/components/ui/use-toast"
 import DashboardHeader from "@/components/dashboard-header"
 import DashboardSidebar from "@/components/dashboard-sidebar"
 import { fetchApi } from "@/lib/api"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
-import Lightbox from "@/components/lightbox"
-import Image from "next/image"
-
-// Status badge component
-const StatusBadge = ({ status }: { status: string }) => {
-  switch (status) {
-    case "PENDING":
-      return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Menunggu</Badge>
-    case "IN_PROGRESS":
-      return <Badge variant="outline" className="bg-blue-100 text-blue-800">Diproses</Badge>
-    case "COMPLETED":
-      return <Badge variant="outline" className="bg-green-100 text-green-800">Selesai</Badge>
-    default:
-      return <Badge variant="outline">{status}</Badge>
-  }
-}
+import { ArrowLeft } from "lucide-react"
 
 export default function ReportDetailPage({ params }: { params: { id: string } }) {
+  const { data: session } = useSession()
   const router = useRouter()
   const [report, setReport] = useState<any>(null)
   const [comment, setComment] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [lightboxOpen, setLightboxOpen] = useState(false)
-  const [selectedImage, setSelectedImage] = useState("")
-  const [reportHistory, setReportHistory] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Fetch report data from API
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        setIsLoading(true)
         const data = await fetchApi(`/api/reports/${params.id}`)
         setReport(data)
-        setError("")
       } catch (err) {
         console.error("Error fetching report:", err)
-        setError("Gagal memuat data laporan")
+        toast({
+          title: "Gagal memuat laporan",
+          description: "Terjadi kesalahan saat mengambil data laporan",
+          variant: "destructive",
+        })
       } finally {
         setIsLoading(false)
       }
@@ -58,72 +42,59 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
     fetchReport()
   }, [params.id])
 
-  // Fetch report history based on reported room number and building
-  useEffect(() => {
-    const fetchReportHistory = async () => {
-      try {
-        const response = await fetch(
-          `/api/reports/history?roomNumber=${report.reportedRoomNumber}&building=${report.reportedBuilding}`
-        )
-        const data = await response.json()
-        setReportHistory(data)
-      } catch (error) {
-        console.error("Error fetching report history:", error)
-      }
-    }
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      const updatedReport = await fetchApi(`/api/reports/${params.id}`, {
+        method: "PATCH",
+        body: { status: newStatus },
+      })
 
-    if (report?.reportedRoomNumber && report?.reportedBuilding) {
-      fetchReportHistory()
+      setReport(updatedReport)
+      toast({
+        title: "Status diperbarui",
+        description: `Status laporan berhasil diubah menjadi ${newStatus}`,
+      })
+    } catch (error) {
+      console.error("Error updating report status:", error)
+      toast({
+        title: "Gagal memperbarui status",
+        description: "Terjadi kesalahan saat mengubah status laporan",
+        variant: "destructive",
+      })
     }
-  }, [report?.reportedRoomNumber, report?.reportedBuilding])
+  }
 
-  const handleCommentSubmit = async () => {
+  const handleAddComment = async () => {
     if (!comment.trim()) return
 
     try {
-      setIsLoading(true)
-      const response = await fetchApi(`/api/reports/${params.id}/comments`, {
+      const newComment = await fetchApi(`/api/reports/${params.id}/comments`, {
         method: "POST",
         body: { message: comment },
       })
 
-      if (response.id) {
-        setComment("")
-        // Refresh report data to show new comment
-        const updatedReport = await fetchApi(`/api/reports/${params.id}`)
-        setReport(updatedReport)
-      }
-    } catch (err) {
-      console.error("Error submitting comment:", err)
-      setError("Gagal mengirim komentar")
-    } finally {
-      setIsLoading(false)
+      setReport((prev) => ({
+        ...prev,
+        comments: [...prev.comments, newComment],
+      }))
+
+      setComment("")
+      toast({
+        title: "Komentar ditambahkan",
+        description: "Komentar berhasil dikirim",
+      })
+    } catch (error) {
+      console.error("Error adding comment:", error)
+      toast({
+        title: "Gagal menambahkan komentar",
+        description: "Terjadi kesalahan saat mengirim komentar",
+        variant: "destructive",
+      })
     }
   }
 
-  const openLightbox = (imageUrl: string) => {
-    setSelectedImage(imageUrl)
-    setLightboxOpen(true)
-  }
-
-  const closeLightbox = () => {
-    setLightboxOpen(false)
-    setSelectedImage("")
-  }
-
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Memuat...</div>
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </div>
-    )
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
   }
 
   if (!report) {
@@ -132,10 +103,10 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <DashboardHeader user={{ name: "User", email: "user@example.com" }} />
+      <DashboardHeader user={session?.user} />
 
       <div className="flex">
-        <DashboardSidebar activeItem="report" />
+        <DashboardSidebar activeItem="report" userRole={session?.user?.role} />
 
         <main className="flex-1 p-6">
           <div className="mb-6 flex items-center">
@@ -159,7 +130,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                         Dibuat pada {new Date(report.createdAt).toLocaleDateString("id-ID")}
                       </CardDescription>
                     </div>
-                    <StatusBadge status={report.status} />
+                    <Badge variant="outline">{report.status}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -185,19 +156,12 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                       <h3 className="font-medium mb-2">Foto Kerusakan</h3>
                       <div className="grid grid-cols-2 gap-2">
                         {report.images.map((image: any, index: number) => (
-                          <div
+                          <img
                             key={index}
-                            className="cursor-pointer"
-                            onClick={() => openLightbox(image.url)}
-                          >
-                            <Image
-                              src={image.url}
-                              alt={`Foto kerusakan ${index + 1}`}
-                              width={300}
-                              height={200}
-                              className="rounded-md w-full h-48 object-cover"
-                            />
-                          </div>
+                            src={image.url}
+                            alt={`Foto kerusakan ${index + 1}`}
+                            className="rounded-md w-full h-48 object-cover"
+                          />
                         ))}
                       </div>
                     </div>
@@ -208,14 +172,23 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
               <Card>
                 <CardHeader>
                   <CardTitle>Diskusi</CardTitle>
-                  <CardDescription>Komunikasi dengan tim PART mengenai laporan ini</CardDescription>
+                  <CardDescription>
+                    Komunikasi dengan tim PART mengenai laporan ini
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {report.comments.map((comment: any) => (
-                    <div key={comment.id} className={`flex gap-4 ${comment.user.role !== "USER" ? "justify-start" : "justify-end"}`}>
+                    <div
+                      key={comment.id}
+                      className={`flex gap-4 ${
+                        comment.user.role !== "USER" ? "justify-start" : "justify-end"
+                      }`}
+                    >
                       <div
                         className={`max-w-[80%] rounded-lg p-3 ${
-                          comment.user.role !== "USER" ? "bg-muted" : "bg-primary text-primary-foreground"
+                          comment.user.role !== "USER"
+                            ? "bg-muted"
+                            : "bg-primary text-primary-foreground"
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
@@ -242,10 +215,9 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                       />
                       <Button
                         className="self-end"
-                        onClick={handleCommentSubmit}
-                        disabled={!comment.trim() || isLoading}
+                        onClick={handleAddComment}
+                        disabled={!comment.trim()}
                       >
-                        <MessageCircle className="h-4 w-4 mr-2" />
                         Kirim
                       </Button>
                     </div>
@@ -254,41 +226,34 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
               </Card>
             </div>
 
-            {/* Sidebar dengan info status dan penanganan */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Status Laporan</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium">Status Saat Ini</h3>
-                      <div className="mt-1">
-                        <StatusBadge status={report.status} />
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-sm font-medium">Terakhir Diperbarui</h3>
-                      <p className="text-sm mt-1">
-                        {new Date(report.updatedAt).toLocaleDateString("id-ID")}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Sidebar untuk admin */}
+            {session?.user?.role === "ADMIN" && (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Status Laporan</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Select
+                      value={report.status}
+                      onValueChange={handleStatusChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PENDING">Menunggu</SelectItem>
+                        <SelectItem value="IN_PROGRESS">Diproses</SelectItem>
+                        <SelectItem value="COMPLETED">Selesai</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </main>
       </div>
-
-      {/* Lightbox untuk memperbesar gambar */}
-      <Lightbox
-        isOpen={lightboxOpen}
-        onClose={closeLightbox}
-        imageUrl={selectedImage}
-      />
     </div>
   )
 }
