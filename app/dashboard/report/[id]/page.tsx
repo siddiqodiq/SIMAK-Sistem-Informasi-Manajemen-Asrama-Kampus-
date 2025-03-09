@@ -37,6 +37,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
   const [error, setError] = useState("")
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState("")
+  const [reportHistory, setReportHistory] = useState<any[]>([])
 
   // Fetch report data from API
   useEffect(() => {
@@ -56,6 +57,25 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
 
     fetchReport()
   }, [params.id])
+
+  // Fetch report history based on reported room number and building
+  useEffect(() => {
+    const fetchReportHistory = async () => {
+      try {
+        const response = await fetch(
+          `/api/reports/history?roomNumber=${report.reportedRoomNumber}&building=${report.reportedBuilding}`
+        )
+        const data = await response.json()
+        setReportHistory(data)
+      } catch (error) {
+        console.error("Error fetching report history:", error)
+      }
+    }
+
+    if (report?.reportedRoomNumber && report?.reportedBuilding) {
+      fetchReportHistory()
+    }
+  }, [report?.reportedRoomNumber, report?.reportedBuilding])
 
   const handleCommentSubmit = async () => {
     if (!comment.trim()) return
@@ -153,6 +173,13 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                     <p className="text-sm">{report.category}</p>
                   </div>
 
+                  <div>
+                    <h3 className="font-medium mb-2">Nomor Kamar yang Dilaporkan</h3>
+                    <p className="text-sm">
+                      Gedung {report.reportedBuilding}, Kamar {report.reportedRoomNumber}
+                    </p>
+                  </div>
+
                   {report.images.length > 0 && (
                     <div>
                       <h3 className="font-medium mb-2">Foto Kerusakan</h3>
@@ -166,8 +193,8 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                             <Image
                               src={image.url}
                               alt={`Foto kerusakan ${index + 1}`}
-                              width={1000}
-                              height={1000}
+                              width={300}
+                              height={200}
                               className="rounded-md w-full h-48 object-cover"
                             />
                           </div>

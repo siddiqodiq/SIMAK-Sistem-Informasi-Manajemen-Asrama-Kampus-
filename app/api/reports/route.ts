@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "@/lib/session"
-import { writeFile } from "fs/promises"
-import { join } from "path"
 
 export async function POST(request: Request) {
   try {
@@ -10,74 +8,46 @@ export async function POST(request: Request) {
     if (!session) return new Response("Unauthorized", { status: 401 })
 
     const formData = await request.formData()
+    const title = formData.get("title") as string
+    const description = formData.get("description") as string
+    const category = formData.get("category") as string
+    const reportedRoomNumber = formData.get("reportedRoomNumber") as string
+    const reportedBuilding = formData.get("reportedBuilding") as string
 
     // Validasi input
-    const requiredFields = ['title', 'description', 'category']
-    const missingFields = requiredFields.filter(field => !formData.get(field))
-    
-    if (missingFields.length > 0) {
+    if (!title || !description || !category || !reportedRoomNumber || !reportedBuilding) {
       return NextResponse.json(
-        { error: `Field yang wajib diisi: ${missingFields.join(', ')}` },
+        { error: "Semua field wajib diisi" },
         { status: 400 }
       )
     }
 
-    // Dapatkan user dengan room
+    // Fetch the user and their associated room
     const user = await prisma.user.findUnique({
       where: { id: session.id },
-      include: { room: true },
+      include: { room: true }
     })
 
-    if (!user?.room) {
+    if (!user) {
       return NextResponse.json(
-        { error: "User tidak memiliki kamar yang valid" },
-        { status: 400 }
+        { error: "User not found" },
+        { status: 404 }
       )
     }
 
-    // Buat report
+    // Buat laporan baru
     const report = await prisma.report.create({
       data: {
-        title: formData.get("title") as string,
-        description: formData.get("description") as string,
-        category: formData.get("category") as string,
+        title,
+        description,
+        category,
         status: "PENDING",
         userId: session.id,
-        roomId: user.room.id,
+        roomId: user.room?.id || null, // Kamar saat ini (null jika tidak ada)
+        reportedRoomNumber, // Nomor kamar yang dilaporkan
+        reportedBuilding,   // Gedung yang dilaporkan
       },
     })
-
-    // Handle image upload
-    const images = formData.getAll("images") as File[]
-    if (images.length > 0) {
-      await Promise.all(
-        images.map(async (image, index) => {
-          const buffer = await image.arrayBuffer()
-          const fileName = `${Date.now()}-${image.name}-${report.id}` // Tambahkan ID laporan ke nama file
-          const filePath = join(process.cwd(), "public", "uploads", fileName)
-
-          // Simpan file ke folder uploads
-          await writeFile(filePath, Buffer.from(buffer))
-
-          // Simpan URL gambar ke database
-          return prisma.image.create({
-            data: {
-              url: `/uploads/${fileName}`,
-              reportId: report.id,
-            },
-          })
-        })
-      )
-    }
-
-    /*// Buat komentar awal
-    await prisma.comment.create({
-      data: {
-        message: "Laporan Anda telah diterima dan sedang menunggu untuk ditinjau oleh tim PART.",
-        reportId: report.id,
-        userId: session.id,
-      },
-    })*/
 
     return NextResponse.json(report)
   } catch (error) {

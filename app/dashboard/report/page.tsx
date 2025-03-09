@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -14,6 +12,7 @@ import { AlertCircle, ArrowLeft, Upload } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import DashboardHeader from "@/components/dashboard-header"
 import DashboardSidebar from "@/components/dashboard-sidebar"
+import { fetchApi } from "@/lib/api"
 
 export default function ReportPage() {
   const router = useRouter()
@@ -21,6 +20,8 @@ export default function ReportPage() {
     title: "",
     category: "",
     description: "",
+    reportedRoomNumber: "", // Tambahkan field nomor kamar yang dilaporkan
+    reportedBuilding: "",   // Tambahkan field gedung yang dilaporkan
     images: [] as File[],
   })
   const [error, setError] = useState("")
@@ -28,33 +29,33 @@ export default function ReportPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-  
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleCategoryChange = (value: string) => {
     setFormData((prev) => ({ ...prev, category: value }))
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  if (e.target.files) {
-    const filesArray = Array.from(e.target.files);
-
-    // Buat URL preview untuk gambar
-    const newPreviewUrls = filesArray.map((file) => URL.createObjectURL(file));
-
-    setFormData((prev) => ({
-      ...prev,
-      images: [...prev.images, ...filesArray],
-    }));
-
-    setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
+  const handleBuildingChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, reportedBuilding: value }))
   }
-};
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files)
+      const newPreviewUrls = filesArray.map((file) => URL.createObjectURL(file))
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...filesArray],
+      }))
+
+      setPreviewUrls((prev) => [...prev, ...newPreviewUrls])
+    }
+  }
 
   const removeImage = (index: number) => {
-    // Revoke the object URL to avoid memory leaks
     URL.revokeObjectURL(previewUrls[index])
 
     setFormData((prev) => ({
@@ -66,60 +67,50 @@ export default function ReportPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-  
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
+
+    // Validasi input
+    if (!formData.title || !formData.category || !formData.description || !formData.reportedRoomNumber || !formData.reportedBuilding) {
+      setError("Semua field wajib diisi")
+      setIsLoading(false)
+      return
+    }
+
     try {
-      // Validasi input
-      if (!formData.title || !formData.category || !formData.description) {
-        setError("Semua field wajib diisi");
-        setIsLoading(false);
-        return;
-      }
-  
-      // Buat FormData untuk mengirim file
-      const formDataToSend = new FormData();
-      formDataToSend.append("title", formData.title);
-      formDataToSend.append("category", formData.category);
-      formDataToSend.append("description", formData.description);
-  
-      // Tambahkan file gambar jika ada
+      const formDataToSend = new FormData()
+      formDataToSend.append("title", formData.title)
+      formDataToSend.append("category", formData.category)
+      formDataToSend.append("description", formData.description)
+      formDataToSend.append("reportedRoomNumber", formData.reportedRoomNumber)
+      formDataToSend.append("reportedBuilding", formData.reportedBuilding)
       formData.images.forEach((image) => {
-        formDataToSend.append("images", image);
-      });
-  
-      // Kirim data ke API
+        formDataToSend.append("images", image)
+      })
+
       const response = await fetch("/api/reports", {
         method: "POST",
         body: formDataToSend,
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Gagal mengirim laporan");
-      }
-  
-      // Redirect ke dashboard setelah berhasil
-      router.push("/dashboard");
-    } catch (err) {
-      console.error("Error submitting report:", err);
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengirim laporan");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      })
 
-  // Mock user data
-  const user = {
-    name: "Budi Santoso",
-    email: "budi@example.com",
-    room: "A-101",
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Gagal mengirim laporan")
+      }
+
+      router.push("/dashboard")
+    } catch (err) {
+      console.error("Error submitting report:", err)
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengirim laporan")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <DashboardHeader user={user} />
+      <DashboardHeader user={{ name: "User", email: "user@example.com" }} />
 
       <div className="flex">
         <DashboardSidebar activeItem="report" />
@@ -192,6 +183,35 @@ export default function ReportPage() {
                   />
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reportedBuilding">Gedung</Label>
+                    <Select onValueChange={handleBuildingChange} value={formData.reportedBuilding}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih gedung" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A">Gedung A</SelectItem>
+                        <SelectItem value="B">Gedung B</SelectItem>
+                        <SelectItem value="C">Gedung C</SelectItem>
+                        <SelectItem value="D">Gedung D</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="reportedRoomNumber">Nomor Kamar</Label>
+                    <Input
+                      id="reportedRoomNumber"
+                      name="reportedRoomNumber"
+                      placeholder="Contoh: 101"
+                      value={formData.reportedRoomNumber}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="images">Foto Kerusakan (Opsional)</Label>
                   <div className="flex items-center gap-2">
@@ -251,4 +271,3 @@ export default function ReportPage() {
     </div>
   )
 }
-

@@ -33,19 +33,23 @@ model Room {
 }
 
 model Report {
-  id          String    @id @default(uuid())
-  title       String
-  description String    @db.Text
-  category    String
-  status      Status    @default(PENDING)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  roomId      String
-  room        Room      @relation(fields: [roomId], references: [id])
-  images      Image[]
-  comments    Comment[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  title           String
+  description     String    @db.Text
+  category        String
+  status          Status    @default(PENDING)
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  roomId          String
+  room            Room      @relation(fields: [roomId], references: [id])
+  reportedRoomNumber String // Nomor kamar yang dilaporkan
+  reportedBuilding   String // Gedung yang dilaporkan
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  completedAt     DateTime?
+  completionNotes String?   @db.Text
+  images          Image[]
+  comments        Comment[]
 }
 
 model Image {

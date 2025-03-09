@@ -9,19 +9,20 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.id },
-      include: { 
+      include: {
         room: true,
         reports: {
           orderBy: { createdAt: "desc" },
           take: 5,
           include: {
+            room: true, // Sertakan informasi kamar
             images: true,
             comments: {
               orderBy: { createdAt: "asc" },
-              take: 1
-            }
-          }
-        }
+              take: 1,
+            },
+          },
+        },
       },
     })
 
@@ -31,9 +32,9 @@ export async function GET() {
         name: user?.name,
         email: user?.email,
         role: user?.role,
-        room: user?.room
+        room: user?.room,
       },
-      reports: user?.reports || []
+      reports: user?.reports || [],
     })
   } catch (error) {
     console.error("Error fetching dashboard data:", error)

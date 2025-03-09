@@ -144,31 +144,32 @@ export default function DashboardPage() {
                   <CardDescription>Daftar 3 laporan kerusakan terbaru yang Anda buat</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {reports?.slice(0, 3).map((report) => (
-                      <div
-                        key={report.id}
-                        className="flex items-start justify-between border-b pb-4 last:border-0 last:pb-0"
-                      >
-                        <div>
-                          <h3 className="font-medium">{report.title}</h3>
-                          <p className="text-sm text-muted-foreground line-clamp-1">{report.description}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(report.createdAt).toLocaleDateString("id-ID", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })}
-                          </p>
-                        </div>
-                        <StatusBadge status={report.status} />
+                <div className="space-y-4">
+                  {reports?.slice(0, 3).map((report) => (
+                    <div
+                      key={report.id}
+                      className="flex items-start justify-between border-b pb-4 last:border-0 last:pb-0"
+                    >
+                      <div>
+                        <h3 className="font-medium">{report.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{report.description}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Kamar: {report.room?.building} {report.room?.number} •{" "}
+                          {new Date(report.createdAt).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </p>
                       </div>
-                    ))}
-                    {(!reports || reports.length === 0) && (
-                      <p className="text-center text-muted-foreground">Belum ada laporan yang dibuat</p>
-                    )}
-                  </div>
-                </CardContent>
+                      <StatusBadge status={report.status} />
+                    </div>
+                  ))}
+                  {(!reports || reports.length === 0) && (
+                    <p className="text-center text-muted-foreground">Belum ada laporan yang dibuat</p>
+                  )}
+                </div>
+              </CardContent>
               </Card>
 
               <div className="flex justify-center">
@@ -198,52 +199,53 @@ export default function DashboardPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {reports?.length > 0 ? (
-                      reports.map((report) => (
-                        <div
-                          key={report.id}
-                          className="flex items-start justify-between border-b pb-4 last:border-0 last:pb-0"
-                        >
-                          <div>
-                            <h3 className="font-medium">{report.title}</h3>
-                            <p className="text-sm text-muted-foreground">{report.description}</p>
-                            <div className="flex items-center gap-2 mt-2">
+                <div className="space-y-4">
+                  {reports?.length > 0 ? (
+                    reports.map((report) => (
+                      <div
+                        key={report.id}
+                        className="flex items-start justify-between border-b pb-4 last:border-0 last:pb-0"
+                      >
+                        <div>
+                          <h3 className="font-medium">{report.title}</h3>
+                          <p className="text-sm text-muted-foreground">{report.description}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <p className="text-xs text-muted-foreground">
+                              Kamar: {report.room?.building} {report.room?.number} •{" "}
+                              Dibuat:{" "}
+                              {new Date(report.createdAt).toLocaleDateString("id-ID", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </p>
+                            {report.status === "IN_PROGRESS" || report.status === "COMPLETED" ? (
                               <p className="text-xs text-muted-foreground">
-                                Dibuat:{" "}
-                                {new Date(report.createdAt).toLocaleDateString("id-ID", {
+                                Diperbarui:{" "}
+                                {new Date(report.updatedAt).toLocaleDateString("id-ID", {
                                   day: "numeric",
                                   month: "long",
                                   year: "numeric",
                                 })}
                               </p>
-                              {report.status === "IN_PROGRESS" || report.status === "COMPLETED" ? (
-                                <p className="text-xs text-muted-foreground">
-                                  Diperbarui:{" "}
-                                  {new Date(report.updatedAt).toLocaleDateString("id-ID", {
-                                    day: "numeric",
-                                    month: "long",
-                                    year: "numeric",
-                                  })}
-                                </p>
-                              ) : null}
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-2">
-                            <StatusBadge status={report.status} />
-                            <Button variant="outline" size="sm" asChild>
-                              <Link href={`/dashboard/report/${report.id}`}>Detail</Link>
-                            </Button>
+                            ) : null}
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground">Belum ada laporan yang dibuat</p>
+                        <div className="flex flex-col items-end gap-2">
+                          <StatusBadge status={report.status} />
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/dashboard/report/${report.id}`}>Detail</Link>
+                          </Button>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Belum ada laporan yang dibuat</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
