@@ -1,13 +1,41 @@
 // components/user-dashboard.tsx
 "use client"
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Home, FileText, PlusCircle, Clock, AlertCircle } from "lucide-react"
 import { fetchApi } from "@/lib/api"
-import { toast } from "@/components/ui/use-toast"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+
+// Status badge component
+const StatusBadge = ({ status }: { status: string }) => {
+  switch (status) {
+    case "PENDING":
+      return (
+        <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+          Menunggu
+        </Badge>
+      )
+    case "IN_PROGRESS":
+      return (
+        <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+          Diproses
+        </Badge>
+      )
+    case "COMPLETED":
+      return (
+        <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+          Selesai
+        </Badge>
+      )
+    default:
+      return <Badge variant="outline">{status}</Badge>
+  }
+}
 
 interface UserDashboardProps {
   user: any
@@ -15,100 +43,201 @@ interface UserDashboardProps {
 }
 
 export default function UserDashboard({ user, reports: initialReports }: UserDashboardProps) {
+  const [activeTab, setActiveTab] = useState("overview")
   const [reports, setReports] = useState(initialReports)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  // Fungsi untuk memuat ulang laporan
-  const fetchReports = async () => {
-    try {
-      setIsLoading(true)
-      const data = await fetchApi("/api/dashboard")
-      setReports(data.reports)
-    } catch (err) {
-      console.error("Error fetching reports:", err)
-      toast({
-        title: "Gagal memuat laporan",
-        description: "Terjadi kesalahan saat mengambil data laporan",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Memuat ulang laporan setiap 10 detik
   useEffect(() => {
-    const interval = setInterval(fetchReports, 10000) // Refresh setiap 10 detik
-    return () => clearInterval(interval)
+    const fetchReports = async () => {
+      try {
+        setIsLoading(true)
+        const data = await fetchApi("/api/dashboard")
+        setReports(data.reports)
+        setError("")
+      } catch (err) {
+        console.error("Error fetching reports:", err)
+        setError("Gagal mengambil data laporan. Silakan coba lagi nanti.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchReports()
   }, [])
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Laporan Saya</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {reports.length > 0 ? (
-            reports.map((report) => (
-              <div
-                key={report.id}
-                className="flex items-center justify-between border-b pb-4 last:border-0"
-              >
-                <div>
-                  <h3 className="font-medium">{report.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {report.description}
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <p className="text-xs text-muted-foreground">
-                      Kamar: {report.room?.building} {report.room?.number} •{" "}
-                      Dibuat:{" "}
-                      {new Date(report.createdAt).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </p>
-                    {report.status === "IN_PROGRESS" || report.status === "COMPLETED" ? (
-                      <p className="text-xs text-muted-foreground">
-                        Diperbarui:{" "}
-                        {new Date(report.updatedAt).toLocaleDateString("id-ID", {
+    <div className="min-h-screen bg-muted/30">
+      <Tabs defaultValue="overview" className="space-y-4" onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="overview">Ringkasan</TabsTrigger>
+          <TabsTrigger value="reports">Laporan Saya</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Kamar</CardTitle>
+                <Home className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{user?.room?.number}</div>
+                <p className="text-xs text-muted-foreground">
+                  Gedung {user?.room?.building}, Lantai {user?.room?.floor}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Laporan</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{reports?.length || 0}</div>
+                <p className="text-xs text-muted-foreground">Laporan kerusakan yang telah dibuat</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Status Terbaru</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  <StatusBadge status={reports?.[0]?.status || "N/A"} />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Laporan terakhir: {reports?.[0]?.title || "Tidak ada"}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Laporan Terbaru</CardTitle>
+              <CardDescription>Daftar 3 laporan kerusakan terbaru yang Anda buat</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {reports?.slice(0, 3).map((report) => (
+                  <div
+                    key={report.id}
+                    className="flex items-start justify-between border-b pb-4 last:border-0 last:pb-0"
+                  >
+                    <div>
+                      <h3 className="font-medium">{report.title}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-1">{report.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(report.createdAt).toLocaleDateString("id-ID", {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
                         })}
                       </p>
-                    ) : null}
+                    </div>
+                    <StatusBadge status={report.status} />
                   </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <Badge variant="outline">
-                    {report.status === "PENDING"
-                      ? "Menunggu"
-                      : report.status === "IN_PROGRESS"
-                      ? "Diproses"
-                      : "Selesai"}
-                  </Badge>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/report/${report.id}`}>Detail</Link>
-                  </Button>
-                </div>
+                ))}
+                {(!reports || reports.length === 0) && (
+                  <p className="text-center text-muted-foreground">Belum ada laporan yang dibuat</p>
+                )}
               </div>
-            ))
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Belum ada laporan yang dibuat</p>
-            </div>
-          )}
-        </div>
+            </CardContent>
+          </Card>
 
-        <div className="mt-6">
-          <Button asChild>
-            <Link href="/dashboard/report">Buat Laporan Baru</Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex justify-center">
+            <Button asChild>
+              <Link href="/dashboard/report">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Buat Laporan Baru
+              </Link>
+            </Button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Semua Laporan</CardTitle>
+                  <CardDescription>Daftar semua laporan kerusakan yang telah Anda buat</CardDescription>
+                </div>
+                <Button asChild>
+                  <Link href="/dashboard/report">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Buat Laporan
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {reports?.length > 0 ? (
+                  reports.map((report) => (
+                    <div
+                      key={report.id}
+                      className="flex items-start justify-between border-b pb-4 last:border-0 last:pb-0"
+                    >
+                      <div>
+                        <h3 className="font-medium">{report.title}</h3>
+                        <p className="text-sm text-muted-foreground">{report.description}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <p className="text-xs text-muted-foreground">
+                            Dibuat:{" "}
+                            {new Date(report.createdAt).toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </p>
+                          {report.status === "IN_PROGRESS" || report.status === "COMPLETED" ? (
+                            <p className="text-xs text-muted-foreground">
+                              Diperbarui:{" "}
+                              {new Date(report.updatedAt).toLocaleDateString("id-ID", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <StatusBadge status={report.status} />
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/dashboard/report/${report.id}`}>Detail</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Belum ada laporan yang dibuat</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   )
 }
