@@ -83,11 +83,13 @@ export default function DashboardPage() {
             </p>
           </div>
 
+          <main className="flex-1 p-6">
           {isAdmin ? (
-            <AdminDashboard reports={reports} />
+            <AdminDashboard initialReports={dashboardData.reports} />
           ) : (
-            <UserDashboard user={user} reports={reports} />
+            <UserDashboard user={user} reports={dashboardData.reports} />
           )}
+      </main>
         </main>
       </div>
     </div>
