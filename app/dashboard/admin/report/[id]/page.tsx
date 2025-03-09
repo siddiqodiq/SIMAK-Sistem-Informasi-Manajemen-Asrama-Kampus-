@@ -143,7 +143,7 @@ export default function AdminReportDetailPage({ params }: { params: { id: string
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Detail Laporan</h1>
+              <h1 className="text-3xl font-bold">Detail Lapaaoran</h1>
               <p className="text-muted-foreground">Laporan #{params.id}</p>
             </div>
           </div>

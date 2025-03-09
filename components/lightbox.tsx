@@ -1,12 +1,13 @@
-"use client"
+// components/lightbox.tsx
+"use client";
 
-import ReactModal from "react-modal"
-import { X } from "lucide-react"
+import ReactModal from "react-modal";
+import { X } from "lucide-react";
 
 interface LightboxProps {
-  isOpen: boolean
-  onClose: () => void
-  imageUrl: string
+  isOpen: boolean;
+  onClose: () => void;
+  imageUrl: string;
 }
 
 export default function Lightbox({ isOpen, onClose, imageUrl }: LightboxProps) {
@@ -32,5 +33,5 @@ export default function Lightbox({ isOpen, onClose, imageUrl }: LightboxProps) {
         </button>
       </div>
     </ReactModal>
-  )
+  );
 }

@@ -151,21 +151,28 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                     </p>
                   </div>
 
-                  {report.images.length > 0 && (
-                    <div>
-                      <h3 className="font-medium mb-2">Foto Kerusakan</h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        {report.images.map((image: any, index: number) => (
-                          <img
-                            key={index}
-                            src={image.url}
-                            alt={`Foto kerusakan ${index + 1}`}
-                            className="rounded-md w-full h-48 object-cover"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {
+  report.images.length > 0 ? (
+    <div>
+      <h3 className="font-medium mb-2">Foto Kerusakan</h3>
+      <div className="grid grid-cols-2 gap-2">
+        {report.images.map((image: any, index: number) => (
+          <img
+            key={index}
+            src={image.url}
+            alt={`Foto kerusakan ${index + 1}`}
+            className="rounded-md w-full h-48 object-cover"
+          />
+        ))}
+      </div>
+    </div>
+  ) : (
+    <div>
+      <h3 className="font-medium mb-2">Foto Kerusakan</h3>
+      <p className="text-sm text-muted-foreground">Tidak ada gambar yang diupload.</p>
+    </div>
+  )
+}
                 </CardContent>
               </Card>
 
