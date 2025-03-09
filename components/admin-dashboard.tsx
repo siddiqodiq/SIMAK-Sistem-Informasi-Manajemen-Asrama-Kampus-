@@ -24,6 +24,7 @@ import {
   Pie,
   Cell
 } from 'recharts'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface AdminDashboardProps {
   initialReports: any[]
@@ -42,6 +43,7 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
     byMonth: [],
     byStatus: []
   })
+  const [activeTab, setActiveTab] = useState("overview")
 
   // Fetch all reports and statistics on component mount
   useEffect(() => {
@@ -101,29 +103,66 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
   }
 
 
-  const renderCharts = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      {/* Bar Chart - Reports by Building */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart className="h-5 w-5" />
-            Laporan per Gedung
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={stats.byBuilding}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="building" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="count" fill="#8884d8" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+  const renderStatusChart = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <PieChart className="h-5 w-5" />
+          Status Perbaikan
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <RechartsPieChart>
+            <Pie
+              data={stats.byStatus}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              outerRadius={100}
+              fill="#8884d8"
+              dataKey="count"
+              nameKey="status"
+              label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+            >
+              {stats.byStatus.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </RechartsPieChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  )
+
+  const renderOverview = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {renderStatusChart()}
+        {/* Bar Chart - Reports by Building */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart className="h-5 w-5" />
+              Laporan per Gedung
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.byBuilding}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="building" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Pie Chart - Reports by Category */}
       <Card>
@@ -159,7 +198,7 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
       </Card>
 
       {/* Line Chart - Reports by Month */}
-      <Card className="md:col-span-2">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart className="h-5 w-5" />
@@ -265,6 +304,7 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
     </Card>
   )
 
+
   return (
     <div className="space-y-6">
       {error && (
@@ -274,8 +314,21 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
         </Alert>
       )}
 
-      {renderCharts()}
-      {renderReportList()}
+      <Tabs defaultValue="overview" className="space-y-4" onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="overview">Ringkasan</TabsTrigger>
+          <TabsTrigger value="reports">Semua Laporan Kerusakan</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          {renderOverview()}
+        </TabsContent>
+
+        <TabsContent value="reports">
+          {renderReportList()}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
+

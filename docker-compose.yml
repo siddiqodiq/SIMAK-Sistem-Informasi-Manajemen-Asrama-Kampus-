@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: simak_db
+    environment:
+      MYSQL_ROOT_PASSWORD: "" # No password for root
+      MYSQL_DATABASE: dormitory_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./dormitory_db.sql:/docker-entrypoint-initdb.d/dormitory_db.sql # Import SQL file
+    networks:
+      - simak_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: simak_app
+    environment:
+      DATABASE_URL: "mysql://root@db:3306/dormitory_db" # Connect as root without password
+      JWT_SECRET: "jwt"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - simak_network
+    command: >
+      sh -c "npm install &&
+             npx prisma generate &&
+             npm run dev"
+
+volumes:
+  mysql_data:
+
+networks:
+  simak_network:
+    driver: bridge

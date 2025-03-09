@@ -15,6 +15,31 @@ import { fetchApi } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
 import Lightbox from "@/components/lightbox"; // Import komponen Lightbox
 
+const StatusBadge = ({ status }: { status: string }) => {
+  switch (status) {
+    case "PENDING":
+      return (
+        <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+          Menunggu
+        </Badge>
+      )
+    case "IN_PROGRESS":
+      return (
+        <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+          Diproses
+        </Badge>
+      )
+    case "COMPLETED":
+      return (
+        <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+          Selesai
+        </Badge>
+      )
+    default:
+      return <Badge variant="outline">{status}</Badge>
+  }
+}
+
 export default function ReportDetailPage({ params }: { params: { id: string } }) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -144,7 +169,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
 
           <div className="grid gap-6 md:grid-cols-3">
             <div className="md:col-span-2 space-y-6">
-              <Card>
+            <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -153,7 +178,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                         Dibuat pada {new Date(report.createdAt).toLocaleDateString("id-ID")}
                       </CardDescription>
                     </div>
-                    <Badge variant="outline">{report.status}</Badge>
+                    <StatusBadge status={report.status} />
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -168,13 +193,13 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                   </div>
 
                   <div>
-                    <h3 className="font-medium mb-2">Nomor Kamar yang Dilaporkan</h3>
+                    <h3 className="font-medium mb-2">Lokasi</h3>
                     <p className="text-sm">
                       Gedung {report.reportedBuilding}, Kamar {report.reportedRoomNumber}
                     </p>
                   </div>
 
-                  {report.images.length > 0 ? (
+                  {report.images.length > 0 && (
                     <div>
                       <h3 className="font-medium mb-2">Foto Kerusakan</h3>
                       <div className="grid grid-cols-2 gap-2">
@@ -182,7 +207,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                           <div
                             key={index}
                             className="cursor-pointer"
-                            onClick={() => openLightbox(image.url)} // Buka lightbox saat gambar diklik
+                            onClick={() => openLightbox(image.url)}
                           >
                             <img
                               src={image.url}
@@ -192,11 +217,6 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                           </div>
                         ))}
                       </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="font-medium mb-2">Foto Kerusakan</h3>
-                      <p className="text-sm text-muted-foreground">Tidak ada gambar yang diupload.</p>
                     </div>
                   )}
                 </CardContent>
@@ -259,6 +279,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
               </Card>
             </div>
 
+            {/* Sidebar untuk admin */}
             {/* Sidebar untuk admin */}
             {session?.user?.role === "ADMIN" && (
               <div className="space-y-6">
