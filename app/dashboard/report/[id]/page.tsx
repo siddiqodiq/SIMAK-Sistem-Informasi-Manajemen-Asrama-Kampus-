@@ -1,108 +1,131 @@
-// app/dashboard/report/[id]/page.tsx
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/components/ui/use-toast"
-import DashboardHeader from "@/components/dashboard-header"
-import DashboardSidebar from "@/components/dashboard-sidebar"
-import { fetchApi } from "@/lib/api"
-import { ArrowLeft } from "lucide-react"
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
+import DashboardHeader from "@/components/dashboard-header";
+import DashboardSidebar from "@/components/dashboard-sidebar";
+import { fetchApi } from "@/lib/api";
+import { ArrowLeft } from "lucide-react";
+import Lightbox from "@/components/lightbox"; // Import komponen Lightbox
 
 export default function ReportDetailPage({ params }: { params: { id: string } }) {
-  const { data: session } = useSession()
-  const router = useRouter()
-  const [report, setReport] = useState<any>(null)
-  const [comment, setComment] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [report, setReport] = useState<any>(null);
+  const [comment, setComment] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  // State untuk Lightbox
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState("");
 
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        const data = await fetchApi(`/api/reports/${params.id}`)
-        setReport(data)
+        const data = await fetchApi(`/api/reports/${params.id}`);
+        setReport(data);
       } catch (err) {
-        console.error("Error fetching report:", err)
+        console.error("Error fetching report:", err);
         toast({
           title: "Gagal memuat laporan",
           description: "Terjadi kesalahan saat mengambil data laporan",
           variant: "destructive",
-        })
+        });
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchReport()
-  }, [params.id])
+    fetchReport();
+  }, [params.id]);
+
+  // Fungsi untuk membuka lightbox
+  const openLightbox = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setLightboxOpen(true);
+  };
+
+  // Fungsi untuk menutup lightbox
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+    setSelectedImage("");
+  };
 
   const handleStatusChange = async (newStatus: string) => {
     try {
       const updatedReport = await fetchApi(`/api/reports/${params.id}`, {
         method: "PATCH",
         body: { status: newStatus },
-      })
+      });
 
-      setReport(updatedReport)
+      setReport(updatedReport);
       toast({
         title: "Status diperbarui",
         description: `Status laporan berhasil diubah menjadi ${newStatus}`,
-      })
+      });
     } catch (error) {
-      console.error("Error updating report status:", error)
+      console.error("Error updating report status:", error);
       toast({
         title: "Gagal memperbarui status",
         description: "Terjadi kesalahan saat mengubah status laporan",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleAddComment = async () => {
-    if (!comment.trim()) return
+    if (!comment.trim()) return;
 
     try {
       const newComment = await fetchApi(`/api/reports/${params.id}/comments`, {
         method: "POST",
         body: { message: comment },
-      })
+      });
 
       setReport((prev) => ({
         ...prev,
         comments: [...prev.comments, newComment],
-      }))
+      }));
 
-      setComment("")
+      setComment("");
       toast({
         title: "Komentar ditambahkan",
         description: "Komentar berhasil dikirim",
-      })
+      });
     } catch (error) {
-      console.error("Error adding comment:", error)
+      console.error("Error adding comment:", error);
       toast({
         title: "Gagal menambahkan komentar",
         description: "Terjadi kesalahan saat mengirim komentar",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   if (!report) {
-    return <div className="flex items-center justify-center min-h-screen">Laporan tidak ditemukan</div>
+    return <div className="flex items-center justify-center min-h-screen">Laporan tidak ditemukan</div>;
   }
 
   return (
     <div className="min-h-screen bg-muted/30">
+      {/* Lightbox */}
+      <Lightbox
+        isOpen={lightboxOpen}
+        onClose={closeLightbox}
+        imageUrl={selectedImage}
+      />
+
       <DashboardHeader user={session?.user} />
 
       <div className="flex">
@@ -151,28 +174,31 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                     </p>
                   </div>
 
-                  {
-  report.images.length > 0 ? (
-    <div>
-      <h3 className="font-medium mb-2">Foto Kerusakan</h3>
-      <div className="grid grid-cols-2 gap-2">
-        {report.images.map((image: any, index: number) => (
-          <img
-            key={index}
-            src={image.url}
-            alt={`Foto kerusakan ${index + 1}`}
-            className="rounded-md w-full h-48 object-cover"
-          />
-        ))}
-      </div>
-    </div>
-  ) : (
-    <div>
-      <h3 className="font-medium mb-2">Foto Kerusakan</h3>
-      <p className="text-sm text-muted-foreground">Tidak ada gambar yang diupload.</p>
-    </div>
-  )
-}
+                  {report.images.length > 0 ? (
+                    <div>
+                      <h3 className="font-medium mb-2">Foto Kerusakan</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {report.images.map((image: any, index: number) => (
+                          <div
+                            key={index}
+                            className="cursor-pointer"
+                            onClick={() => openLightbox(image.url)} // Buka lightbox saat gambar diklik
+                          >
+                            <img
+                              src={image.url}
+                              alt={`Foto kerusakan ${index + 1}`}
+                              className="rounded-md w-full h-48 object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <h3 className="font-medium mb-2">Foto Kerusakan</h3>
+                      <p className="text-sm text-muted-foreground">Tidak ada gambar yang diupload.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -262,5 +288,5 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
         </main>
       </div>
     </div>
-  )
+  );
 }
