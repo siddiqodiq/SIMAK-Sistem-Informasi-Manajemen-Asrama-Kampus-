@@ -50,6 +50,8 @@ model Report {
   completionNotes String?   @db.Text
   images          Image[]
   comments        Comment[]
+  repairCost Float?
+  completedAt DateTime?
 }
 
 model Image {

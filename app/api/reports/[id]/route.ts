@@ -3,7 +3,6 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "@/lib/session"
 
-// app/api/reports/[id]/route.ts
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
@@ -15,23 +14,49 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { status } = body
+    const { status, repairCost } = body
+
+    // Data yang akan diupdate
+    const updateData: any = { 
+      status,
+      repairCost: repairCost ? parseFloat(repairCost) : null
+    }
+
+    // Jika status diubah menjadi COMPLETED dan belum ada completedAt
+    if (status === 'COMPLETED' && !body.completedAt) {
+      updateData.completedAt = new Date()
+    }
 
     const updatedReport = await prisma.report.update({
       where: { id: params.id },
-      data: { status },
+      data: updateData,
+      include: {
+        images: true,
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                role: true,
+              },
+            },
+          },
+        },
+      },
     })
 
     return NextResponse.json(updatedReport)
   } catch (error) {
-    console.error("Error updating report status:", error)
+    console.error("Error updating report:", error)
     return NextResponse.json(
-      { error: "Terjadi kesalahan saat mengubah status laporan" },
+      { error: "Terjadi kesalahan saat mengupdate laporan" },
       { status: 500 }
     )
   }
 }
 
+// GET endpoint tetap sama
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession()
@@ -40,7 +65,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const report = await prisma.report.findUnique({
       where: { id: params.id },
       include: {
-        images: true, // Pastikan relasi images diambil
+        images: true,
         comments: {
           include: {
             user: {
