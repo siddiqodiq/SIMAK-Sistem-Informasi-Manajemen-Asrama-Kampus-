@@ -16,7 +16,7 @@ Sebelum memulai, pastikan Anda memiliki:
 ### **2️⃣ Instalasi & Konfigurasi**  
 1. **Clone repositori ini**  
    ```sh
-   git clone https://github.com/username/simak.git
+   git clone https://github.com/siddiqodiq/SIMAK-Sistem-Informasi-Manajemen-Asrama-Kampus-
    cd simak
    ```
 
@@ -66,7 +66,7 @@ Pastikan Anda telah menginstal:
 ### **2️⃣ Menjalankan Aplikasi**  
 1. **Clone repositori ini**  
    ```sh
-   git clone https://github.com/username/simak.git
+   git clone https://github.com/siddiqodiq/SIMAK-Sistem-Informasi-Manajemen-Asrama-Kampus-
    cd simak
    ```
 
