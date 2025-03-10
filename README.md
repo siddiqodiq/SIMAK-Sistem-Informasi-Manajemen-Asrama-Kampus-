@@ -99,13 +99,13 @@ Pastikan Anda telah menginstal:
 
 
 ## 🎯 **Fitur Utama**  
--✅ Dashboard statistik
--✅ Role Based Access Control (RBAC) ->
-✅ Manajemen data kerusakan kamar
-✅ Diskusi dan komentar dengan admin PART pada laporan kerusakan 
-✅ Otentikasi JWT,Sanitasi input, hashing password dan unique id untuk keamanan
-✅ Tracking progress perbaikan
-✅ Migrasi database otomatis dengan Prisma  
-✅ Dukungan **Docker** untuk kemudahan deployment  
+- ✅ Dashboard statistik
+- ✅ Role Based Access Control (RBAC) -> admin & user
+- ✅ Manajemen data kerusakan kamar
+- ✅ Diskusi dan komentar dengan admin PART pada laporan kerusakan
+- ✅ Otentikasi JWT, sanitasi input, hashing password, dan unique id untuk keamanan
+- ✅ Tracking progress perbaikan
+- ✅ Migrasi database otomatis dengan Prisma
+- ✅ Dukungan **Docker** untuk kemudahan deployment 
 
 Jika mengalami kendala, silakan buat **issue** atau hubungi pengembang. 🚀
