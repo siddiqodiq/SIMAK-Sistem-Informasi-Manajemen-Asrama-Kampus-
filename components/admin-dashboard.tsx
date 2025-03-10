@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { fetchApi } from "@/lib/api"
 import { toast } from "@/components/ui/use-toast"
-import { AlertCircle, MessageSquare, Eye, PieChart, ArrowUpDown } from "lucide-react"
+import { AlertCircle, MessageSquare, Eye, PieChart, ArrowUpDown, Clock } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   BarChart,
@@ -31,6 +31,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 interface AdminDashboardProps {
   initialReports: any[]
+}
+
+interface RepairCostByMonthChartProps {
+  data: { month: string; totalCost: number }[];
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8']
@@ -69,7 +73,11 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
     byBuilding: [],
     byCategory: [],
     byMonth: [],
-    byStatus: []
+    byStatus: [],
+    repairCostByYear: [],
+    repairCostByMonth: [],
+
+    
   })
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' })
   const [activeTab, setActiveTab] = useState("overview")
@@ -195,7 +203,6 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
     
     return `${days} hari ${hours} jam`
   }
-
   const sortReports = (key: string) => {
   let direction = 'asc'
   if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -372,7 +379,7 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
       </CardContent>
     </Card>
   )
-
+  
   const renderOverview = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -399,6 +406,31 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
           </CardContent>
         </Card>
       </div>
+
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BarChart className="h-5 w-5" />
+          Total Biaya Perbaikan per Bulan (Tahun Ini)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={stats.repairCostByMonth}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis
+              tickFormatter={(value) => `Rp ${value.toLocaleString()}`}
+            />
+            <Tooltip
+              formatter={(value) => `Rp ${value.toLocaleString()}`}
+            />
+            <Legend />
+            <Bar dataKey="totalCost" fill="#82ca9d" />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
 
       {/* Pie Chart - Reports by Category */}
       <Card>
@@ -455,6 +487,7 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
         </CardContent>
       </Card>
     </div>
+    
   )
 
   return (

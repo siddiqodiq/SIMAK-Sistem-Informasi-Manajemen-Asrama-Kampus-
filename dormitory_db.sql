@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 10, 2025 at 03:01 AM
+-- Generation Time: Mar 10, 2025 at 07:06 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -60,6 +60,7 @@ CREATE TABLE `image` (
 --
 
 INSERT INTO `image` (`id`, `url`, `reportId`, `createdAt`) VALUES
+('3ce1702f-3c09-4eea-aa3a-d4a9503fde1c', '/uploads/report_e457254b-74bf-4204-a17b-a2344fe33915_1741582259080.jpeg', 'e457254b-74bf-4204-a17b-a2344fe33915', '2025-03-10 04:50:59.084'),
 ('45a764bf-5f1d-4c3f-a0da-25360a253dca', '/uploads/report_ee8fc1aa-d41e-4e81-ad3e-d664dfcf71e7_1741571492824.jpeg', 'ee8fc1aa-d41e-4e81-ad3e-d664dfcf71e7', '2025-03-10 01:51:32.829'),
 ('aff23bcc-4bce-4b4c-b131-805f84499071', '/uploads/report_e285d7eb-3a12-46f0-9415-6e86b269174f_1741571710991.jpeg', 'e285d7eb-3a12-46f0-9415-6e86b269174f', '2025-03-10 01:55:10.995'),
 ('fc0768e8-44b8-478d-b143-0f24e4ff6b70', '/uploads/report_8b75f6ff-0591-41ac-9f2e-0a0b03858066_1741571783378.jpeg', '8b75f6ff-0591-41ac-9f2e-0a0b03858066', '2025-03-10 01:56:23.383');
@@ -83,17 +84,18 @@ CREATE TABLE `report` (
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
   `updatedAt` datetime(3) NOT NULL,
   `completedAt` datetime(3) DEFAULT NULL,
-  `completionNotes` text DEFAULT NULL
+  `repairCost` double DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `report`
 --
 
-INSERT INTO `report` (`id`, `title`, `description`, `category`, `status`, `userId`, `roomId`, `reportedRoomNumber`, `reportedBuilding`, `createdAt`, `updatedAt`, `completedAt`, `completionNotes`) VALUES
-('8b75f6ff-0591-41ac-9f2e-0a0b03858066', 'Ac rusak', 'AC rusak tidak dingin', 'other', 'COMPLETED', '283768d9-0723-4966-b752-aa2a04163592', 'C-206', '206', 'C', '2025-03-10 01:56:23.374', '2025-03-10 01:56:34.900', NULL, NULL),
-('e285d7eb-3a12-46f0-9415-6e86b269174f', 'Pintu rusak', 'Pintu rusak karena tertiup angin', 'door', 'PENDING', '283768d9-0723-4966-b752-aa2a04163592', 'B-102', '102', 'B', '2025-03-10 01:55:10.988', '2025-03-10 01:55:10.988', NULL, NULL),
-('ee8fc1aa-d41e-4e81-ad3e-d664dfcf71e7', 'Lampu kamar mati', 'Lampu kamar mati mungkin karena listriknya', 'electrical', 'IN_PROGRESS', '283768d9-0723-4966-b752-aa2a04163592', 'C-206', '206', 'C', '2025-03-10 01:51:32.779', '2025-03-10 01:52:05.979', NULL, NULL);
+INSERT INTO `report` (`id`, `title`, `description`, `category`, `status`, `userId`, `roomId`, `reportedRoomNumber`, `reportedBuilding`, `createdAt`, `updatedAt`, `completedAt`, `repairCost`) VALUES
+('8b75f6ff-0591-41ac-9f2e-0a0b03858066', 'Ac rusak', 'AC rusak tidak dingin', 'other', 'COMPLETED', '283768d9-0723-4966-b752-aa2a04163592', 'C-206', '206', 'C', '2025-03-09 01:56:23.374', '2025-03-09 04:16:35.654', '2025-03-10 04:11:38.129', NULL),
+('e285d7eb-3a12-46f0-9415-6e86b269174f', 'Pintu rusak', 'Pintu rusak karena tertiup angin', 'door', 'COMPLETED', '283768d9-0723-4966-b752-aa2a04163592', 'B-102', '102', 'B', '2025-03-10 01:55:10.988', '2025-03-10 04:16:49.240', '2025-03-10 04:16:38.962', 100000),
+('e457254b-74bf-4204-a17b-a2344fe33915', 'Atap roboh', 'Atap roboh ', 'other', 'PENDING', '283768d9-0723-4966-b752-aa2a04163592', 'C-206', '206', 'C', '2025-03-10 04:50:59.059', '2025-03-10 05:15:01.773', '2025-03-10 05:14:47.699', NULL),
+('ee8fc1aa-d41e-4e81-ad3e-d664dfcf71e7', 'Lampu kamar mati', 'Lampu kamar mati mungkin karena listriknya', 'electrical', 'COMPLETED', '283768d9-0723-4966-b752-aa2a04163592', 'C-206', '206', 'C', '2025-01-10 01:51:32.779', '2025-01-21 05:15:03.057', '2025-01-22 05:57:36.947', 300000);
 
 -- --------------------------------------------------------
 
@@ -329,7 +331,8 @@ CREATE TABLE `_prisma_migrations` (
 --
 
 INSERT INTO `_prisma_migrations` (`id`, `checksum`, `finished_at`, `migration_name`, `logs`, `rolled_back_at`, `started_at`, `applied_steps_count`) VALUES
-('37854dcd-5def-45ec-a6d5-da783b32d2cf', '03c8fc139a3553f8fb6b41ec42e01a8927c186bbef52fe32712415789bdff2b9', '2025-03-10 01:39:08.277', '20250310013904_init', NULL, NULL, '2025-03-10 01:39:04.971', 1);
+('37854dcd-5def-45ec-a6d5-da783b32d2cf', '03c8fc139a3553f8fb6b41ec42e01a8927c186bbef52fe32712415789bdff2b9', '2025-03-10 01:39:08.277', '20250310013904_init', NULL, NULL, '2025-03-10 01:39:04.971', 1),
+('f80278e1-3b4c-4419-990e-a0d372424aab', '6cad672f104bd66060300a3f4d1625c12fba211fd47dc9bcc1959d057176351a', '2025-03-10 03:40:48.291', '20250310034048_add_repair_cost_and_completed_at', NULL, NULL, '2025-03-10 03:40:48.250', 1);
 
 --
 -- Indexes for dumped tables

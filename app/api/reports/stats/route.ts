@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+interface ReportStats {
+  byBuilding: { building: string; count: number }[];
+  byCategory: { category: string; count: number }[];
+  byMonth: { month: string; count: number }[];
+  byStatus: { status: string; count: number }[];
+  repairCostByYear: { year: string; totalCost: number }[];
+  repairCostByMonth: { month: string; totalCost: number }[]; //
+  avgRepairDuration: number;
+}
+
 export async function GET() {
   try {
     // Reports by building
@@ -42,8 +52,34 @@ export async function GET() {
       by: ["status"],
       _count: true,
     });
-
-    return NextResponse.json({
+// Total biaya perbaikan per bulan untuk tahun sekarang
+const repairCostByMonth = await prisma.$queryRaw<
+  { month: string; totalCost: number }[]
+>`
+  SELECT 
+    DATE_FORMAT(completedAt, '%Y-%m') as month,
+    SUM(repairCost) as totalCost
+  FROM Report
+  WHERE 
+    status = 'COMPLETED' 
+    AND repairCost IS NOT NULL
+    AND YEAR(completedAt) = YEAR(CURDATE())
+  GROUP BY month
+  ORDER BY month
+`;
+    // Total biaya perbaikan per tahun
+    const repairCostByYear = await prisma.$queryRaw<
+      { year: string; totalCost: number }[]
+    >`
+      SELECT 
+        YEAR(completedAt) as year,
+        SUM(repairCost) as totalCost
+      FROM Report
+      WHERE status = 'COMPLETED' AND repairCost IS NOT NULL
+      GROUP BY year
+      ORDER BY year
+    `;    
+    const stats: ReportStats = {
       byBuilding: byBuilding.map((b) => ({
         building: b.reportedBuilding,
         count: b._count,
@@ -54,13 +90,23 @@ export async function GET() {
       })),
       byMonth: byMonthRaw.map((m) => ({
         month: m.month,
-        count: Number(m.count), // 🔥 Konversi BigInt ke Number
+        count: Number(m.count),
       })),
       byStatus: byStatus.map((s) => ({
         status: s.status,
-        count: Number(s._count), // 🔥 Konversi BigInt ke Number
+        count: Number(s._count),
       })),
-    });
+      repairCostByYear: repairCostByYear.map((y) => ({
+        year: y.year,
+        totalCost: Number(y.totalCost),
+      })),
+      repairCostByMonth: repairCostByMonth.map((m) => ({
+        month: m.month,
+        totalCost: Number(m.totalCost),
+      })),
+    };
+
+    return NextResponse.json(stats);
   } catch (error) {
     console.error("Error fetching stats:", error);
     return NextResponse.json(

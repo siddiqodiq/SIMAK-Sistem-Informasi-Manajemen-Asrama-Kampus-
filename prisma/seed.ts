@@ -71,6 +71,9 @@ async function main() {
     { name: "Budi Santoso", email: "budi@example.com", room: "A-101" },
     { name: "Dewi Lestari", email: "dewi@example.com", room: "B-205" },
     { name: "Ahmad Rizki", email: "ahmad.rizki@example.com", room: "C-310" },
+    { name: "Ahmad Rizki", email: "ahmad.rizki@example.com", room: "C-310" },
+    { name: "Syubbanul Siddiq", email: "Syubbanul Siddiq", room: "C-310" },
+    
   ]
 
   for (const user of users) {
