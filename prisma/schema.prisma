@@ -46,8 +46,6 @@ model Report {
   reportedBuilding   String // Gedung yang dilaporkan
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  completedAt     DateTime?
-  completionNotes String?   @db.Text
   images          Image[]
   comments        Comment[]
   repairCost Float?
