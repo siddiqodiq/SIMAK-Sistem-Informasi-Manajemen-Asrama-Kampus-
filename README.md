@@ -123,3 +123,5 @@ Pastikan Anda telah menginstal:
 
 
 Jika mengalami kendala, silakan buat **issue** atau hubungi pengembang. 🚀
+
+**Repository ini dibuat untuk memenuhi tugas UAS Manajemen Sistem Informasi 2024/2025
