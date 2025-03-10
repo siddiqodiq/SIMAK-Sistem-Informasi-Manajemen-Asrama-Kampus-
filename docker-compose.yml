@@ -5,7 +5,7 @@ services:
     image: mysql:8.0
     container_name: simak_db
     environment:
-      MYSQL_ROOT_PASSWORD: "" # No password for root
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes" # Allow empty password
       MYSQL_DATABASE: dormitory_db
     ports:
       - "3306:3306"

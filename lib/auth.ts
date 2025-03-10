@@ -1,4 +1,4 @@
-import { hash, compare } from "bcrypt"
+import { hash, compare } from "bcryptjs"
 import { prisma } from "./prisma"
 
 export async function hashPassword(password: string) {
