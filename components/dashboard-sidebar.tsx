@@ -34,20 +34,7 @@ export default function DashboardSidebar({
       id: "report",
       roles: ["USER", "ADMIN", "STAFF"]
     },
-    {
-      name: "Admin PART",
-      href: "/dashboard/admin",
-      icon: Users,
-      id: "admin",
-      roles: ["ADMIN"]
-    },
-    {
-      name: "Pengaturan",
-      href: "/dashboard/settings",
-      icon: Settings,
-      id: "settings",
-      roles: ["USER", "ADMIN", "STAFF"]
-    },
+  
   ]
 
   return (

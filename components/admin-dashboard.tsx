@@ -309,6 +309,7 @@ export default function AdminDashboard({ initialReports }: AdminDashboardProps) 
                       </SelectContent>
                     </Select>
                   </td>
+            
                   <td className="p-2">
                     <CurrencyInput
                       id="repairCost"

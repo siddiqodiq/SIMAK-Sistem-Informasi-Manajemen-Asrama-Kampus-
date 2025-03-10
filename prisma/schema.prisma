@@ -50,6 +50,7 @@ model Report {
   comments        Comment[]
   repairCost Float?
   completedAt DateTime?
+  
 }
 
 model Image {

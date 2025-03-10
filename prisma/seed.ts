@@ -47,8 +47,6 @@ async function main() {
 
   const staffMembers = [
     { name: "Ahmad Teknisi", email: "ahmad@example.com" },
-    { name: "Budi Teknisi", email: "budi.teknisi@example.com" },
-    { name: "Citra Teknisi", email: "citra@example.com" },
   ]
 
   for (const staff of staffMembers) {
@@ -67,12 +65,8 @@ async function main() {
   // Create regular users
   const userPassword = await hash("user123", 10)
 
-  const users = [
-    { name: "Budi Santoso", email: "budi@example.com", room: "A-101" },
-    { name: "Dewi Lestari", email: "dewi@example.com", room: "B-205" },
-    { name: "Ahmad Rizki", email: "ahmad.rizki@example.com", room: "C-310" },
-    { name: "Ahmad Rizki", email: "ahmad.rizki@example.com", room: "C-310" },
-    { name: "Syubbanul Siddiq", email: "Syubbanul Siddiq", room: "C-310" },
+  const users = [ 
+   { name: "Syubbanul Siddiq", email: "siddiqodiq@gmail.com", room: "C-310" },
     
   ]
 
